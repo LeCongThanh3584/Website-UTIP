@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Trang đăng nhập giảng viên</title>
+    <!--    css-->
+    <link rel="stylesheet" type="text/css" th:href="@{/css/admin/dash-board.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/lecturer/list-course.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/lecturer/grading.css}">
+
+    <!--    bootstrap-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!--    font-awesum-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Toastify CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
+
+    <!-- Toastify JS -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <link rel="shortcut icon" th:href="@{/icons/logo.png}" type="image/png">
+
+</head>
+<body>
+<div class="col-xxl-10 mx-auto col-lg-12">
+    <div class="d-flex">
+        <div class="side-bar flex-1" id="sidebar">
+            <div class="side-bar-heading text-center">
+                Đăng nhập - GV
+            </div>
+
+            <div class="side-bar-content d-flex flex-column">
+                <a href="/lecturer/infor" class="list-group-item hover" th:classappend="${active == 1 ? 'active' : 'hover'}">
+                    <i class="fa-solid fa-earth-americas me-2"></i>Thông tin giảng viên
+                </a>
+                <a href="/lecturer/list-course" class="list-group-item" th:classappend="${active == 2 ? 'active' : 'hover'}">
+                    <i class="fa-solid fa-graduation-cap me-2"></i>Học phần giảng dạy
+                </a>
+                <a href="/lecturer/sudent-course-grade" class="list-group-item" th:classappend="${active == 3 ? 'active' : 'hover'}">
+                    <i class="fa-solid fa-square-poll-vertical me-2"></i>Chấm điểm
+                </a>
+            </div>
+        </div>
+
+        <div class="content flex-4">
+            <div class="nav-bar d-flex justify-content-between">
+                <div class="hover" id="toggleButton">
+                    <i style="font-size: 25px" class="fa-solid fa-bars"></i>
+                </div>
+
+                <div class="user-infor d-flex position-relative">
+                    <img class="rounded-circle me-2" style="width: 35px; height: 30px" th:src="@{'/images/lecturers/id-' + ${lecturerLogin.lecturerId} + '/' + ${lecturerLogin.image}}" alt="">
+                    <h5 class="hover dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" th:text="${lecturerLogin.lecturerName}"></h5>
+
+                    <ul class="dropdown-menu">
+                        <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalInfoUser" href="#">Thông tin</button></li>
+                        <li><a class="dropdown-item" th:href="@{/logout}">Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="main-content" style="min-height: 80vh">
+                <div th:replace="~{${pageName} :: content}"></div> <!-- Cú pháp thay thế fragment mới của thymeleaf -->
+            </div>
+        </div>
+
+    </div>
+
+    <footer th:fragment="footer">
+        <div class="footer">
+            <h6 class="title-footer"> Copyright <i class="fa-regular fa-copyright"></i> <a href="https://www.facebook.com/Thanh.dlpfs" target="_blank">Công Thành - 2024</a></h6>
+        </div>
+    </footer>
+
+    <!--        modal info user-->
+    <div class="modal" id="modalInfoUser">
+        <div class="modal-dialog" style="width: 51vw !important; max-width: unset">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#home">Thông tin tài khoản</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#menu1">Đổi mật khẩu</a>
+                        </li>
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <div class="tab-content">
+                        <form id="home" class="tab-pane active" action="/lecturer/update-lecturer" method="post">
+                            <input type="text" hidden name="lecturerId" th:value="${lecturerLogin.lecturerId}">
+                            <div class="row">
+                                <div class="p-2 col-sm-6">
+                                    <label style="min-width: 30%; font-weight: bold" for="studentName">Tên giảng viên: </label>
+                                    <input class="input-infor" type="text" name="lecturerName" id="studentName" th:value="${lecturerLogin.lecturerName}">
+                                </div>
+                                <div class="p-2 col-sm-6">
+                                    <label style="min-width: 30%; font-weight: bold" for="phoneNumber">Số điện thoại: </label>
+                                    <input class="input-infor" type="text" name="phoneNumber" id="phoneNumber" th:value="${lecturerLogin.phoneNumber}">
+                                </div>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="p-2 col-sm-6">
+                                    <label style="min-width: 30%; font-weight: bold" for="address">Địa chỉ: </label>
+                                    <input class="input-infor" type="text" name="address" id="address" th:value="${lecturerLogin.address}">
+                                </div>
+                                <div class="p-2 col-sm-6">
+                                    <label style="min-width: 30%; font-weight: bold" for="dobStudent">Ngày sinh: </label>
+                                    <input type="date" name="dateOfBirth" id="dobStudent" th:value="${lecturerLogin.dateOfBirth}">
+                                </div>
+                            </div>
+
+                            <div class="row my-3">
+                                <div class="col-sm-6">
+                                    <label class="minwidth-30 fw-bold" for="gender">Giới tính:</label>
+                                    <select class="form-select p-1" name="gender" id="gender" aria-label="Default select example" >
+                                        <option value="">Chọn giới tính</option>
+                                        <option value="Nam" th:selected="${lecturerLogin.gender == 'Nam'}">Nam</option>
+                                        <option value="Nữ" th:selected="${lecturerLogin.gender == 'Nữ'}">Nữ</option>
+                                        <option value="Khác" th:selected="${lecturerLogin.gender == 'Khác'}">Khác</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Modal footer -->
+                            <div class="modal-footer">
+                                <button type="submit" class="btn color-btn" data-bs-dismiss="modal">Cập nhật</button>
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Đóng</button>
+                            </div>
+                        </form>
+
+                        <form id="menu1" class="tab-pane fade" action="/lecturer/change-password" method="post">
+                            <input type="text" hidden name="lecturerId" th:value="${lecturerLogin.lecturerId}">
+                            <div class="p-3">
+                                <label style="min-width: 40%" for="currentPass">Mật khẩu hiện tại: </label>
+                                <input class="input-pass" required type="password" name="currentPassword" id="currentPass" placeholder="Nhập mật khẩu hiện tại...">
+                            </div>
+                            <div class="p-3">
+                                <label style="min-width: 40%" for="newPass">Mật khẩu mới: </label>
+                                <input class="input-pass" required type="password" name="newPassword" id="newPass" placeholder="Nhập mật khẩu mới...">
+                            </div>
+                            <div class="p-3">
+                                <label style="min-width: 40%" for="retypePass">Nhập lại mật khẩu mới: </label>
+                                <input class="input-pass" required type="password" name="confirmPassword" id="retypePass" placeholder="Nhập lại mật khẩu mới...">
+                            </div>
+                            <!-- Modal footer -->
+                            <div class="modal-footer">
+                                <button type="submit" class="btn color-btn">Cập nhật</button>
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Đóng</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    const toggleButton = document.getElementById("toggleButton");
+    const sidebar = document.getElementById("sidebar");
+    toggleButton.addEventListener("click",  function () {
+        sidebar.classList.toggle("hidden");
+    });
+
+    const showToastMessage = message => {
+        Toastify({
+            text: message,
+            duration: 5000,  // Thời gian hiển thị toast (ms)
+            gravity: "top",  // Vị trí hiển thị toast (top, bottom, center)
+            position: "center" // Vị trí chiều ngang (left, center, right)
+        }).showToast();
+    }
+
+</script>
+
+<script th:if="${showToast}" th:inline="javascript">
+    let messageResponse = /*[[${messageResponse}]]*/ null;
+    showToastMessage(messageResponse);
+</script>
+
+<!--    js-->
+<script th:src="@{/js/dash-board.js}"></script>
+<script th:src="@{/js/list-subject.js}"></script>
+<script th:src="@{/js/list-point.js}"></script>
+
+</body>
+</html>

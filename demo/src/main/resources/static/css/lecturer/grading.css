@@ -1,0 +1,12 @@
+.notice {
+    font-size: 14px;
+    text-align: center;
+    color: gray;
+    font-style: italic;
+}
+
+.css-modal-update {
+    margin-top: 15vh !important;
+    width: 50% !important;
+    max-width: unset !important;
+}

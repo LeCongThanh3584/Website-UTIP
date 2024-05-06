@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách điểm</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/list-point.css}">
+    <!--    bootstrap-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!--    font-awesum-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+<body>
+<div class="container-fluid" th:fragment="content">
+    <div class="header">
+        <h3 class="title-header text-white">Quản lý lịch học sinh viên</h3>
+    </div>
+    <div class="row p-2 justify-content-between">
+        <div class="col-sm-3 mt-3 mb-3">
+            <button class="btn btn-success color-btn" data-bs-toggle="modal" data-bs-target="#addnewpoint">Thêm mới lịch học</button>
+        </div>
+
+        <div class="col-sm-6 mt-3 mb-3">
+            <form class="input-search" action="/dash-board/list-schedule/search" method="get">
+                <input type="text" name="keyword" id="search" th:value="${keyword}" placeholder="Tìm kiếm...">
+                <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </form>
+        </div>
+
+    </div>
+
+    <p th:if="${noResultSearch ?: false}" class="no-result">Không có kết quả tìm kiếm</p>
+    <p th:if="${noResultFindAll ?: false}" class="no-result">Không có dữ liệu để hiển thị, bạn cần thêm mới dữ liệu</p>
+
+    <div style="min-height: 260px">
+        <table class="table table-striped table-hover border text-center">
+            <thead>
+                <tr>
+                    <th scope="col">Mã lớp</th>
+                    <th scope="col">Mã HP</th>
+                    <th scope="col">Tên HP</th>
+                    <th scope="col">Thời gian</th>
+                    <th scope="col">Thứ</th>
+                    <th scope="col">Học kì</th>
+                    <th scope="col">ĐK tối đa</th>
+                    <th scope="col">Đã ĐK</th>
+                    <th scope="col">Tuỳ chọn</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="schedule : ${listSchedules}">
+                    <th scope="row" th:text="${schedule.classCode}"></th>
+                    <td th:text="${schedule.subject.subjectCode}"></td>
+                    <td th:text="${schedule.subject.subjectName}"></td>
+                    <td th:text="${schedule.timeLearn}"></td>
+                    <td th:text="${schedule.schoolDay}"></td>
+                    <td th:text="${schedule.semester.semesterName}"></td>
+                    <td th:text="${schedule.maxRegister}"></td>
+                    <td th:text="${schedule.registered}"></td>
+                    <td class="d-flex justify-content-evenly">
+                        <span class="text-info hover"
+                              data-bs-toggle="modal"
+                              data-bs-target="#inforstudent"
+                              title="Thông tin lịch học"
+                              th:scheduleId="${schedule.scheduleId}"
+                              onclick="clickInForSchedule(this.getAttribute('scheduleId'))">
+                            <i class="fa-solid fa-circle-info"></i>
+                        </span>
+                        <span class="text-primary hover"
+                              data-bs-toggle="modal"
+                              data-bs-target="#updatestudent"
+                              title="Cập nhật lịch học"
+                              th:scheduleId="${schedule.scheduleId}"
+                              onclick="clickInforUpdateSchedule(this.getAttribute('scheduleId'))">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </span>
+                        <span class="text-danger hover"
+                              data-bs-toggle="modal"
+                              data-bs-target="#ModalDeletePoint"
+                              title="xoá lịch học"
+                              th:scheduleId="${schedule.scheduleId}"
+                              onclick="clickModalDeleteSchedule(this.getAttribute('scheduleId'))">
+                            <i class="fa-solid fa-trash"></i>
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!--    pagination-->
+    <nav aria-label="Page navigation example" th:if="${totalPage > 0}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:if="${pageNumber > 0}">
+                <a class="page-link" th:href="${keyword != null ? '?keyword=' + keyword +'&' : '?'} + 'page=' + ${pageNumber - 1}" tabindex="-1" aria-disabled="true"><<</a>
+            </li>
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPage - 1)}" th:classappend="${pageNumber == i ? 'active' : ''}">
+                <a class="page-link" th:href="${keyword != null ? '?keyword=' + keyword +'&' : '?'} + 'page=' + ${i}" th:text="${i + 1}"></a>
+            </li>
+            <li class="page-item" th:if="${pageNumber < totalPage - 1}">
+                <a class="page-link" th:href="${keyword != null ? '?keyword=' + keyword +'&' : '?'} + 'page=' + ${pageNumber + 1}">>></a>
+            </li>
+        </ul>
+    </nav>
+
+    <!--        modal add new schedule-->
+    <div class="modal fade" id="addnewpoint" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog margintop-15vh">
+            <form class="modal-content width-150" action="/add-new-schedule" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addnewSubjectLabel">Thêm lịch học</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center ">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 fw-bold" for="studentaddnew">Học phần: </label>
+                            <select class="form-select" required aria-label="Default select example" name="subjectId" id="studentaddnew">
+                                <option selected value="">Chọn học phần</option>
+                                <option th:each="subject : ${listSubjects}"
+                                        th:value="${subject.subjectId}"
+                                        th:text="${subject.subjectName}">
+                                </option>
+                            </select>
+                            <p class="note mt-1">Nếu không có học phần phải thêm học phần trước</p>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 fw-bold" for="timeLearnAddnew">Thời gian học: </label>
+                            <select class="form-select" required aria-label="Default select example" name="timeLearn" id="timeLearnAddnew">
+                                <option selected value="">Chọn thời gian</option>
+                                <option value="6:45-8:25">6:45-8:25</option>
+                                <option value="6:45-9:20">6:45-9:20</option>
+                                <option value="9:20-11:45">9:20-11:45</option>
+                                <option value="12:30-14:00">12:30-14:00</option>
+                                <option value="14:25-15:30">14:25-15:30</option>
+                                <option value="15:30-17:30">15:30-17:30</option>
+                            </select>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 fw-bold" for="schoolDayAddnew">Ngày học: </label>
+                            <select class="form-select" required aria-label="Default select example" name="schoolDay" id="schoolDayAddnew">
+                                <option value="">Chọn ngày học</option>
+                                <option value="Thứ 2">Thứ 2</option>
+                                <option value="Thứ 3">Thứ 3</option>
+                                <option value="Thứ 4">Thứ 4</option>
+                                <option value="Thứ 5">Thứ 5</option>
+                                <option value="Thứ 6">Thứ 6</option>
+                                <option value="Thứ 7">Thứ 7</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row my-4">
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 d-block fw-bold" for="maxRegisterAddnew">Tối đa đăng ký: </label>
+                            <input class="css-input p-1" required type="text" name="maxRegister" id="maxRegisterAddnew">
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 d-block fw-bold" for="classCodeAddnew">Mã lớp học: </label>
+                            <input class="css-input p-1" required type="text" name="classCode" id="classCodeAddnew">
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 d-block fw-bold" for="locationAddnew">Phòng học </label>
+                            <input class="css-input p-1" required type="text" name="location" id="locationAddnew">
+                        </div>
+                    </div>
+
+                    <div class="row my-4">
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 fw-bold" for="semesterAddnew">Học kỳ: </label>
+                            <select class="form-select" required aria-label="Default select example" name="semesterId" id="semesterAddnew">
+                                <option value="">Chọn học kỳ</option>
+                                <option th:each="semester : ${listSemesters}"
+                                        th:value="${semester.semesterId}"
+                                        th:text="${semester.semesterName}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                            <label style="font-size: 15px" class="minwidth-30 fw-bold" for="regisStartTime">Ngày bắt đầu đăng ký: </label>
+                            <input type="date" id="regisStartTime" required name="regisStartTime">
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label style="font-size: 14px" class="minwidth-30 fw-bold" for="regisEndTime">Ngày kết thúc đăng ký: </label>
+                            <input type="date" id="regisEndTime" required name="regisEndTime">
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success color-btn">Thêm</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Huỷ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!--        modal infor schedule-->
+
+    <div class="modal fade" id="inforstudent" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog margintop-15vh">
+            <div class="modal-content width-150">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="inforSubjectLabel">Thông tin lịch học sinh viên</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body row">
+
+                    <div class="col-sm-6">
+                        <div>
+                            <label class="minwidth-30 fw-bold">Tên học phần: </label>
+                            <span id="subjectNameInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold">Mã lớp học: </label>
+                            <span id="classCodeInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold" >Thời gian học: </label>
+                            <span id="timeLearnInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold">Ngày học: </label>
+                            <span id="schoolDayInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold">Học kỳ: </label>
+                            <span id="semesterInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold">Ngày tạo: </label>
+                            <span id="createAtInfor"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div>
+                            <label class="minwidth-30 fw-bold">Tối đa đăng ký: </label>
+                            <span id="maxRegisterInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold">Đã đăng ký: </label>
+                            <span id="registeredInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold">Phòng học: </label>
+                            <span id="locationInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold">Ngày bắt đầu đăng ký: </label>
+                            <span id="regisStartTimeInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold">Ngày kết thúc đăng ký: </label>
+                            <span id="regisEndTimeInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold">Ngày cập nhật: </label>
+                            <span id="updateAtInfor"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Huỷ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--    modal update schedule-->
+    <div class="modal fade" id="updatestudent" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog margintop-15vh">
+            <form class="modal-content width-150" action="/update-schedule" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addnewpointLabel">Cập nhật lịch học</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="row">
+                        <input type="text" hidden name="scheduleId" id="scheduleId">
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 fw-bold" for="studentUpdate">Học phần: </label>
+                            <select class="form-select" required aria-label="Default select example" name="subjectId" id="studentUpdate">
+                                <option selected value="">Chọn học phần</option>
+                                <option th:each="subject : ${listSubjects}"
+                                        th:value="${subject.subjectId}"
+                                        th:text="${subject.subjectName}">
+                                </option>
+                            </select>
+                            <p class="note mt-1">Nếu không có học phần phải thêm học phần trước</p>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 fw-bold" for="timeLearnUpdate">Thời gian học: </label>
+                            <select class="form-select" required aria-label="Default select example" name="timeLearn" id="timeLearnUpdate">
+                                <option selected value="">Chọn thời gian</option>
+                                <option value="6:45-8:25">6:45-8:25</option>
+                                <option value="6:45-9:20">6:45-9:20</option>
+                                <option value="9:20-11:45">9:20-11:45</option>
+                                <option value="12:30-14:00">12:30-14:00</option>
+                                <option value="14:25-15:30">14:25-15:30</option>
+                                <option value="15:30-17:30">15:30-17:30</option>
+
+                            </select>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 fw-bold" for="schoolDayUpdate">Ngày học: </label>
+                            <select class="form-select" required aria-label="Default select example" name="schoolDay" id="schoolDayUpdate">
+                                <option value="">Chọn ngày học</option>
+                                <option value="Thứ 2">Thứ 2</option>
+                                <option value="Thứ 3">Thứ 3</option>
+                                <option value="Thứ 4">Thứ 4</option>
+                                <option value="Thứ 5">Thứ 5</option>
+                                <option value="Thứ 6">Thứ 6</option>
+                                <option value="Thứ 7">Thứ 7</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row my-3">
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 d-block fw-bold" for="maxRegisterUpdate">Tối đa đăng ký: </label>
+                            <input class="css-input p-1" required type="text" name="maxRegister" id="maxRegisterUpdate">
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 d-block fw-bold" for="classCodeUpdate">Mã lớp học: </label>
+                            <input class="css-input p-1" required type="text" name="classCode" id="classCodeUpdate">
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 d-block fw-bold" for="locationUpdate">Phòng học </label>
+                            <input class="css-input p-1" required type="text" name="location" id="locationUpdate">
+                        </div>
+                    </div>
+
+                    <div class="row my-3">
+                        <div class="col-sm-4">
+                            <label class="minwidth-30 fw-bold" for="semesterUpdate">Học kỳ: </label>
+                            <select class="form-select" required aria-label="Default select example" name="semesterId" id="semesterUpdate">
+                                <option value="">Chọn học kỳ</option>
+                                <option th:each="semester : ${listSemesters}"
+                                        th:value="${semester.semesterId}"
+                                        th:text="${semester.semesterName}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label style="font-size: 15px" class="minwidth-30 fw-bold" for="regisStartTimeUpdate">Ngày bắt đầu đăng ký: </label>
+                            <input type="date" id="regisStartTimeUpdate" required name="regisStartTime">
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label style="font-size: 14px" class="minwidth-30 fw-bold" for="regisEndTimeUpdate">Ngày kết thúc đăng ký: </label>
+                            <input type="date" id="regisEndTimeUpdate" required name="regisEndTime">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success color-btn">Cập nhật</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Huỷ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!--    modal delete schedule-->
+    <div class="modal fade" id="ModalDeletePoint" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form class="modal-content" action="/delete-schedule" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Xoá lịch học</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" hidden name="id" id="scheduleDeleteId">
+                    Bạn có chắc muốn xoá lịch học có id <span id="idSchedule" style="color: blue"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success color-btn">Xoá</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Huỷ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

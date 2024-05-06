@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head xmlns:th="http://www.thymeleaf.org">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div th:fragment="content" style="padding: 0px 15px">
+    <h6 class="text-center main-title" style="color: #8c1515;">THÔNG TIN CÁ NHÂN</h6>
+    <div class="row mt-4">
+        <div class="col-lg-4">
+            <p class="text-center fw-bold" style="margin: 0">Ảnh</p>
+            <div style="width: 50%; margin: 0 auto;">
+                <img style="width: 100%;" th:src="@{'/images/lecturers/id-' + ${lecturerLogin.lecturerId} + '/' + ${lecturerLogin.image}}">
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div>
+                <label class="fw-bold">Họ và tên: </label>
+                <span th:text="${lecturerLogin.lecturerName}"></span>
+            </div>
+            <div class="mt-3">
+                <label class="fw-bold">Mã giảng viên: </label>
+                <span th:text="${lecturerLogin.lecturerCode}"></span>
+            </div>
+            <div class="mt-3">
+                <label class="fw-bold">Thuộc khoa/viện: </label>
+                <span th:text="${lecturerLogin.department.departmentName}"></span>
+            </div>
+            <div class="mt-3">
+                <label class="fw-bold">Giới tính: </label>
+                <span th:text="${lecturerLogin.gender}"></span>
+            </div>
+            <div class="mt-3">
+                <label class="fw-bold">Trình độ: </label>
+                <span th:text="${lecturerLogin.level}"></span>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="mt-3">
+                <label class="fw-bold">Email: </label>
+                <span th:text="${lecturerLogin.email}"></span>
+            </div>
+            <div class="mt-3">
+                <label class="fw-bold">Địa chỉ: </label>
+                <span th:text="${lecturerLogin.address}"></span>
+            </div>
+            <div class="mt-3">
+                <label class="fw-bold">Số điện thoại: </label>
+                <span th:text="${lecturerLogin.phoneNumber}"></span>
+            </div>
+            <div class="mt-3">
+                <label class="fw-bold">Ngày sinh: </label>
+                <span th:text="${lecturerLogin.dateOfBirth}"></span>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

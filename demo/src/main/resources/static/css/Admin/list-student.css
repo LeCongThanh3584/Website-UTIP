@@ -1,0 +1,71 @@
+body {
+    padding: 20px;
+}
+
+.title-header {
+    text-align: center;
+    padding: 20px;
+}
+
+.header {
+    background-color: rgb(18, 39, 74);
+}
+
+.select-sort {
+    padding: 6px 30px;
+}
+
+.total-student {
+    color: #000000d9 !important;
+    font-size: 18px;
+}
+
+.color-select {
+    color: #fff;
+    background-color: rgb(21, 46, 89) !important;
+    border-color: #2e6da4;
+    border-radius: 5px;
+}
+
+.input-search {
+    float: right;
+    border-radius: 5px;
+    padding: 5px;
+    min-width: 250px;
+    border: 1px solid gray;
+
+}
+
+.hover:hover {
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.margintop-15vh {
+    margin-top: 15vh !important;
+}
+
+.width-150 {
+    width: 150% !important;
+    top: -50px;
+    transform: translate(-15%);
+}
+
+.css-input {
+    width: 60%;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+.minwidth-35 {
+    min-width: 35%;
+}
+
+.note {
+    font-style: italic;
+    color: gray;
+}
+
+.color-btn {
+    background-color: rgb(21, 46, 89) !important;
+}

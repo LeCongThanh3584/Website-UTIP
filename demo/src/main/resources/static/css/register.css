@@ -1,0 +1,106 @@
+.body {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+::placeholder {
+    font-size: 15px;
+    font-family: arial !important;
+}
+
+.backgr-color-white {
+    background-color: white;
+}
+
+.header-top {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #E3E6EF;
+}
+
+.content {
+    padding: 30px 40px;
+}
+
+.form-login {
+    border-radius: 6px;
+    margin-top: 25px;
+    box-shadow: 0 5px 20px rgba(140,144,164,.2);
+    background-color: #FFFFFF;
+    font-family: arial !important;
+    color: black !important;
+}
+
+.form-label {
+    font-size: 15px;
+    color: #0A0A0A;
+}
+
+.color-forget-pass, .color-register {
+    text-decoration: none;
+    color: #8231D3;
+}
+
+.btn-login {
+    border: 1px solid;
+    color: white;
+    padding: 12px;
+    background-color: rgb(18, 39, 74);
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    width: 100%;
+    margin-top: 25px;
+}
+
+.input-email, .input-pass {
+    font-size: 15px !important;
+    padding: 12px 11px !important;
+}
+
+.or-login::before {
+    content: "";
+    background: #E3E6EF;
+    width: 100%;
+    height: 1px;
+    display: block;
+    position: absolute;
+    top: 50%;
+}
+
+.or-login {
+    color: #404040;
+    font-size: 13px;
+    position: relative;
+}
+
+.or-login .span-or {
+    padding: 0px 15px;
+    position: relative;
+    background-color: #fff;
+}
+
+.link-google {
+    border-radius: 5px;
+    opacity: 0.6;
+    color: white;
+    background-color: #F06548;
+    font-size: 25px;
+    padding: 10px;
+}
+
+.link-google:hover {
+    opacity: 1;
+}
+
+.link-facebook {
+    font-size: 25px;
+    background-color: #3A589B10;
+    border-radius: 5px;
+    padding: 10px 15px;
+}
+
+.link-facebook:hover {
+    background-color: #3A589B;
+    color: white;
+}

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách sinh viên</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/list-student.css}">
+    <!--    bootstrap-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!--    font-awesum-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+<body>
+
+    <div class="container-fluid" th:fragment="content">
+       <div class="header">
+           <h3 class="title-header text-white">Quản lý thông tin sinh viên</h3>
+       </div>
+
+        <div class="p-2">
+            <h4 class="total-student">Có tổng tất cả <span th:text="${quantityStudent}"></span> sinh viên</h4>
+        </div>
+
+        <div class="row p-2">
+            <div class="col-sm-3 mt-3 mb-3">
+                <button class="btn btn-success color-btn" data-bs-toggle="modal" data-bs-target="#addnewstudent">Thêm sinh viên</button>
+            </div>
+            <div class="col-sm-3 mt-3 mb-3">
+                <select class="select-sort color-select" id="sortStudent" onchange="sendSortStudent()">
+                    <option value="">Sắp xếp</option>
+                    <option value="name" th:selected="${sort == 'name'}">Họ tên</option>
+                    <option value="class" th:selected="${sort == 'class'}">Lớp</option>
+                    <option value="address" th:selected="${sort == 'address'}">Quê quán</option>
+                </select>
+            </div>
+            <div class="col-sm-6 mt-3 mb-3">
+                <form class="input-search" action="/dash-board/list-student/search" method="get">
+                    <input type="text" name="keyword" id="search" placeholder="Tìm kiếm..." th:value="${keyword}">
+                    <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                </form>
+            </div>
+
+        </div>
+
+        <p th:if="${noResultSearch ?: false}" class="no-result">Không có kết quả tìm kiếm</p>
+        <p th:if="${noResultFindAll ?: false}" class="no-result">Không có dữ liệu để hiển thị, bạn cần thêm mới dữ liệu</p>
+
+        <div style="min-height: 260px">
+            <table class="table table-striped table-hover border text-center" style="font-size: 15px">
+                <thead>
+                <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">Họ tên</th>
+                    <th scope="col" class="text-nowrap">Mã sinh viên</th>
+                    <th scope="col">Lớp</th>
+                    <th scope="col">Khoa</th>
+                    <th scope="col">Quê quán</th>
+                    <th scope="col" class="text-nowrap">Tuỳ chọn</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="student : ${listStudent}">
+                    <th scope="row" th:text="${student.studentId}"></th>
+                    <td class="text-nowrap" th:text="${student.studentName}"></td>
+                    <td class="text-nowrap" th:text="${student.studentCode}"></td>
+                    <td class="text-nowrap" th:text="${student.studentClass.className}"></td>
+                    <td class="text-nowrap" th:text="${student.department.departmentName}"></td>
+                    <td class="text-nowrap" th:text="${student.address}"></td>
+                    <td class="d-flex justify-content-evenly">
+                        <span class="text-info hover"
+                              data-bs-toggle="modal"
+                              data-bs-target="#inforstudent"
+                              title="Thông tin sinh viên"
+                              th:studentId="${student.studentId}"
+                              onclick="clickInfoStudent(this.getAttribute('studentId'))">
+                            <i class="fa-solid fa-circle-info"></i>
+                        </span>
+                        <span class="text-primary hover"
+                              data-bs-toggle="modal"
+                              data-bs-target="#updatestudent"
+                              title="Cập nhật sinh viên"
+                              th:studentId="${student.studentId}"
+                              onclick="clickInfoUpdateStudent(this.getAttribute('studentId'))">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </span>
+                        <span class="text-danger hover"
+                              title="Xoá sinh viên"
+                              data-bs-toggle="modal"
+                              data-bs-target="#ModalDeleteStudent"
+                              th:studentId="${student.studentId}"
+                              onclick="clickModalDeleteStudent(this.getAttribute('studentId'))">
+                            <i class="fa-solid fa-trash"></i>
+                        </span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+        <!--    pagination-->
+        <nav aria-label="Page navigation example" th:if="${totalPage > 0}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:if="${pageNumber > 0}">
+                    <a class="page-link" th:href="${keyword != null ? '?keyword=' + keyword +'&' : '?'} + 'page=' + ${pageNumber - 1}" tabindex="-1" aria-disabled="true"><<</a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPage - 1)}" th:classappend="${pageNumber == i ? 'active' : ''}">
+                    <a class="page-link" th:href="${keyword != null ? '?keyword=' + keyword +'&' : '?'} + 'page=' + ${i}" th:text="${i + 1}"></a>
+                </li>
+                <li class="page-item" th:if="${pageNumber < totalPage - 1}">
+                    <a class="page-link" th:href="${keyword != null ? '?keyword=' + keyword +'&' : '?'} + 'page=' + ${pageNumber + 1}">>></a>
+                </li>
+            </ul>
+        </nav>
+
+<!--        modal add new student-->
+        <div class="modal fade" id="addnewstudent" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog margintop-15vh">
+                <form class="modal-content width-150" action="/add-new-student" method="post" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addnewstudentLabel">Thêm mới sinh viên</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <label class="minwidth-30 fw-bold" for="namestudent">Tên sinh viên:</label>
+                                <input class="css-input p-1" type="text" required name="studentName" id="namestudent" placeholder="Nhập tên sinh viên...">
+                            </div>
+
+                            <div class="col-sm-6">
+                                <label class="minwidth-30 fw-bold" for="studentCode">Mã sinh viên:</label>
+                                <input class="css-input p-1" type="text" required name="studentCode" id="studentCode" placeholder="Nhập mã sinh viên...">
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-sm-6">
+                                <label class="minwidth-30 fw-bold" for="email">Email:</label>
+                                <input class="css-input p-1" type="email" required name="email" id="email" placeholder="Nhập email...">
+                            </div>
+
+                            <div class="col-sm-6">
+                                <label class="minwidth-30 fw-bold" for="password">Mật khẩu:</label>
+                                <input class="css-input p-1" type="password" required name="password" id="password" placeholder="Nhập mật khẩu...">
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-sm-6">
+                                <label class="minwidth-30 fw-bold" for="phonenumber">Số điện thoại:</label>
+                                <input class="css-input p-1" type="text" name="phoneNumber" id="phonenumber" oninput="validatePhoneNumber(this)" placeholder="Nhập Sđt(Nhập số)...">
+                            </div>
+
+                            <div class="col-sm-6">
+                                <label class="minwidth-30 fw-bold" for="address">Địa chỉ:</label>
+                                <input class="css-input p-1" type="text" name="address" id="address" placeholder="Nhập địa chỉ...">
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-sm-4">
+                                <label class="minwidth-30 fw-bold" for="classAddNew">Thuộc lớp:</label>
+                                <select class="form-select" required name="classId" id="classAddNew" aria-label="Default select example" >
+                                    <option selected value="">Chọn lớp</option>
+                                    <option th:each="class : ${listClass}"
+                                            th:text="${class.className}"
+                                            th:value="${class.classId}"></option>
+                                </select>
+                                <p class="note mt-1">Nếu không có lớp phải thêm lớp trước</p>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="minwidth-30 fw-bold" for="depaertmentAddNew">Thuộc khoa :</label>
+                                <select class="form-select" required name="departmentId" id="depaertmentAddNew" aria-label="Default select example">
+                                    <option selected value="">Chọn khoa</option>
+                                    <option th:each="depart : ${listDepartment}"
+                                            th:text="${depart.departmentName}"
+                                            th:value="${depart.departmentId}"></option>
+                                </select>
+                                <p class="note mt-1">Nếu không có khoa phải thêm khoa trước</p>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="minwidth-30 fw-bold" for="statusLearnAddnew">Trạng thái học tập :</label>
+                                <select class="form-select" required name="statusLearn" id="statusLearnAddnew" aria-label="Default select example">
+                                    <option selected value="">Chọn trạng thái</option>
+                                    <option value="Học">Học</option>
+                                    <option value="Bảo lưu">Bảo lưu</option>
+                                    <option value="Buộc thôi học">Buộc thôi học</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4 d-flex">
+                            <div class="col-sm-6">
+                                <label class="minwidth-30 fw-bold" for="dateofbirth">Ngày sinh:</label>
+                                <input class="css-input p-1" required type="date" name="dateOfBirth" id="dateofbirth">
+                            </div>
+
+                            <div class="col-sm-6 d-flex">
+                                <label class="minwidth-30 fw-bold" for="gender">Giới tính:</label>
+                                <select class="form-select" required name="gender" id="gender" aria-label="Default select example" >
+                                    <option selected value="">Chọn giới tính</option>
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 d-flex">
+                            <label class="minwidth-30 fw-bold" for="image">Chọn ảnh :</label>
+                            <input type="file" accept="image/*" required name="imageStudent" id="image">
+                            <img src="" style="width: 15%" id="pre_image">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success color-btn">Thêm</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Huỷ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+<!--        modal infor student-->
+
+        <div class="modal fade" id="inforstudent" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog margintop-15vh">
+                <div class="modal-content width-150">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="inforstudentLabel">Thông tin sinh viên</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body row">
+
+                        <div class="col-sm-6">
+                            <div>
+                                <label class="minwidth-35 fw-bold" for="namestudentinfor">Tên sinh viên: </label>
+                                <span id="namestudentinfor"></span>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="minwidth-35 fw-bold" for="addressinfor">Địa chỉ:</label>
+                                <span id="addressinfor"></span>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="minwidth-35 fw-bold" for="phonenumberinfor">Số điện thoại:</label>
+                                <span id="phonenumberinfor"></span>
+                            </div>
+                            <div class="mt-4">
+                                <label class="minwidth-35 fw-bold" for="genderinfor">Giới tính:</label>
+                                <span id="genderinfor"></span>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="minwidth-35 fw-bold">Ngày sinh:</label>
+                                <span id="studentDOBInfor"></span>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="minwidth-35 fw-bold">Email: </label>
+                                <span id="emailStudentInfor"></span>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="minwidth-35 fw-bold">Trạng thái học tập: </label>
+                                <span id="statusLearnStudentInfor"></span>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="fw-bold minwidth-35">Số tín chỉ tích luỹ: </label>
+                                <span id="creditsAccumulate"></span>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="fw-bold minwidth-35">Số tín chỉ nợ đăng ký: </label>
+                                <span id="creditsOwe"></span>
+                            </div>
+                            <div class="mt-4">
+                                <label class="fw-bold minwidth-35">Điểm trung bình tích luỹ: </label>
+                                <span id="CPA"></span>
+                            </div>
+                            <div class="mt-4">
+                                <label class="fw-bold minwidth-35">Trạng thái tài khoản: </label>
+                                <span id="enable"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div>
+                                <label class="minwidth-35 fw-bold" for="namestudentinfor">Mã số sinh viên: </label>
+                                <span id="studentCodeInfor"></span>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="minwidth-35 fw-bold d-block mb-2">Ảnh:</label>
+                                <img src="" id="studentImageInfor" style="width: 50%">
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="minwidth-35 fw-bold" >Thuộc lớp:</label>
+                                <span id="studentClassInfor"></span>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="minwidth-35 fw-bold">Thuộc khoa:</label>
+                                <span id="departStudentInfor"></span>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="fw-bold minwidth-35">Ngày tạo: </label>
+                                <span id="studentInforCreateAt"></span>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="fw-bold minwidth-35">Ngày cập nhật: </label>
+                                <span id="studentInforUpdateAt"></span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Huỷ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--    modal update student-->
+        <div class="modal fade" id="updatestudent" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog margintop-15vh">
+                <form class="modal-content width-150" action="/update-student" method="post" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="updatestudentLabel">Cập nhật thông tin sinh viên</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" hidden name="studentId" id="studentId">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <label class="minwidth-30 fw-bold" for="nameStudentUpdate">Tên sinh viên:</label>
+                                <input class="css-input p-1" type="text" required name="studentName" id="nameStudentUpdate" placeholder="Nhập tên sinh viên...">
+                            </div>
+
+                            <div class="col-sm-6">
+                                <label class="minwidth-30 fw-bold" for="studentCodeUpdate">Mã sinh viên:</label>
+                                <input class="css-input p-1" type="text" required name="studentCode" id="studentCodeUpdate" placeholder="Nhập mã sinh viên...">
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-sm-6">
+                                <label class="minwidth-30 fw-bold" for="emailStudentUpdate">Email: </label>
+                                <input class="css-input p-1" type="email" required name="email" id="emailStudentUpdate" placeholder="Nhập email...">
+                            </div>
+
+                            <div class="col-sm-6">
+                                <label class="minwidth-30 fw-bold" for="passwordStudentUpdate">Mật khẩu:</label>
+                                <input class="css-input p-1" type="password" name="password" id="passwordStudentUpdate" placeholder="Nhập mật khẩu...">
+                                <p class="note mt-1">Nếu không cập nhật mật khẩu vui lòng bỏ trống</p>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-sm-6">
+                                <label class="minwidth-30 fw-bold" for="phonenumberStudentUpdate">Số điện thoại:</label>
+                                <input class="css-input p-1" type="text" name="phoneNumber" id="phonenumberStudentUpdate" oninput="validatePhoneNumber(this)" placeholder="Nhập Sđt(Nhập số)...">
+                            </div>
+
+                            <div class="col-sm-6">
+                                <label class="minwidth-30 fw-bold" for="addressStudentUpdate">Địa chỉ:</label>
+                                <input class="css-input p-1" type="text" name="address" id="addressStudentUpdate" placeholder="Nhập địa chỉ...">
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-sm-4">
+                                <label class="minwidth-30 fw-bold" for="classStudentUpdate">Thuộc lớp:</label>
+                                <select class="form-select" required name="classId" id="classStudentUpdate" aria-label="Default select example" >
+                                    <option selected value="">Chọn lớp</option>
+                                    <option th:each="class : ${listClass}"
+                                            th:text="${class.className}"
+                                            th:value="${class.classId}"></option>
+                                </select>
+                                <p class="note mt-1">Nếu không có lớp phải thêm lớp trước</p>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <label class="minwidth-30 fw-bold" for="depaertmentStudentUpdate">Thuộc khoa/Viện :</label>
+                                <select class="form-select" required name="departmentId" id="depaertmentStudentUpdate" aria-label="Default select example">
+                                    <option selected value="">Chọn khoa</option>
+                                    <option th:each="depart : ${listDepartment}"
+                                            th:text="${depart.departmentName}"
+                                            th:value="${depart.departmentId}"></option>
+                                </select>
+                                <p class="note mt-1">Nếu không có khoa phải thêm khoa trước</p>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <label class="minwidth-30 fw-bold" for="statusLearnUpdate">Trạng thái học tập :</label>
+                                <select class="form-select" required name="statusLearn" id="statusLearnUpdate" aria-label="Default select example">
+                                    <option selected value="">Chọn trạng thái</option>
+                                    <option value="Học">Học</option>
+                                    <option value="Bảo lưu">Bảo lưu</option>
+                                    <option value="Buộc thôi học">Buộc thôi học</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <label class="minwidth-30 fw-bold d-block" for="studentDOBUpdate">Ngày sinh:</label>
+                                <input class="css-input p-1" required type="date" name="dateOfBirth" id="studentDOBUpdate">
+                            </div>
+
+                            <div class="col-sm-4">
+                                <label class="minwidth-30 fw-bold" for="genderStudentUpdate">Giới tính:</label>
+                                <select class="form-select" required name="gender" id="genderStudentUpdate" aria-label="Default select example" >
+                                    <option selected value="">Chọn giới tính</option>
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <label class="minwidth-30 fw-bold" for="enableStudentUpdate">Trạng thái tài khoản:</label>
+                                <select class="form-select" required name="enable" id="enableStudentUpdate" aria-label="Default select example" >
+                                    <option selected value="">Chọn trạng thái</option>
+                                    <option value="true" >Đang hoạt động</option>
+                                    <option value="false" >Đã bị khoá</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 row">
+                            <label class="minwidth-30 fw-bold col-sm-4" for="imageupdate">Ảnh :</label>
+                            <div class="col-sm-8">
+                                <input type="file" class="mb-2 mb-3 d-block" accept=".png, .jpeg, .jpg" name="imageStudentUpdate" id="imageupdate">
+                                <img src="" id="imageStudentUpdate" style="width: 30%">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success color-btn">Cập nhật</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Huỷ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!--    modal delete-student-->
+        <div class="modal fade" id="ModalDeleteStudent" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <form class="modal-content" action="/delete-student" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Xoá sinh viên</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" hidden name="studentId" id="studentIdDelete">
+                        Bạn có chắc muốn xoá sinh viên có id là: <span id="idStudent"></span>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit"
+                                class="btn btn-success color-btn">Xoá</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Huỷ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

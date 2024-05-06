@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head xmlns:th="http://www.thymeleaf.org">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div th:fragment="content" style="padding: 0px 15px">
+        <h6 class="text-center main-title" style="color: #8c1515;">THÔNG TIN CÁ NHÂN</h6>
+        <div class="row mt-4">
+            <div class="col-lg-4">
+                <p class="text-center fw-bold" style="margin: 0">Ảnh</p>
+                <div style="width: 50%; margin: 0 auto;">
+                    <img style="width: 100%;" th:src="@{'/images/student/id-' + ${studentLogin.studentId} + '/' + ${studentLogin.image}}">
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div>
+                    <label class="fw-bold">Họ và tên: </label>
+                    <span th:text="${studentLogin.studentName}"></span>
+                </div>
+                <div class="mt-3">
+                    <label class="fw-bold">Mã số sinh viên: </label>
+                    <span th:text="${studentLogin.studentCode}"></span>
+                </div>
+                <div class="mt-3">
+                    <label class="fw-bold">Thuộc lớp: </label>
+                    <span th:text="${studentLogin.studentClass.className}"></span>
+                </div>
+                <div class="mt-3">
+                    <label class="fw-bold">Khoa/Viện quản lý: </label>
+                    <span th:text="${studentLogin.department.departmentName}"></span>
+                </div>
+                <div class="mt-3">
+                    <label class="fw-bold">Trạng thái học tập: </label>
+                    <span th:text="${studentLogin.statusLearn}"></span>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div>
+                    <label class="fw-bold">Địa chỉ: </label>
+                    <span th:text="${studentLogin.address}"></span>
+                </div>
+                <div class="mt-3">
+                    <label class="fw-bold">Giới tính: </label>
+                    <span th:text="${studentLogin.gender}"></span>
+                </div>
+                <div class="mt-3">
+                    <label class="fw-bold">Số điện thoại: </label>
+                    <span th:text="${studentLogin.phoneNumber}"></span>
+                </div>
+                <div class="mt-3">
+                    <label class="fw-bold">Ngày sinh: </label>
+                    <span th:text="${#temporals.format(studentLogin.dateOfBirth, 'dd-MM-yyyy')}"></span>
+                </div>
+                <div class="mt-3">
+                    <label class="fw-bold">Email: </label>
+                    <span th:text="${studentLogin.email}"></span>
+                </div>
+            </div>
+        </div>
+
+        <h6 class="text-center main-title mt-4">THÔNG TIN HỌC TẬP</h6>
+        <div style="padding: 0px 15px">
+            <div class="mt-3">
+                <label class="fw-bold">Số tín chỉ tích luỹ: </label> <span th:text="${studentLogin.creditsAccumulate}"></span>
+            </div>
+            <div class="mt-3">
+                <label class="fw-bold">Số tín chỉ nợ đăng ký: </label> <span th:text="${studentLogin.creditsOwe}"></span>
+            </div>
+            <div class="my-3">
+                <label class="fw-bold">Điểm trung bình tích luỹ: </label> <span th:text="${studentLogin.cumulativeGPA}"></span>
+            </div>
+         </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,111 @@
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+    /*font-family: 'Arimo', sans-serif !important;*/
+    font-family: arial !important;
+}
+
+.side-bar {
+    background-color: #fff;
+    /*border-left: 1px solid gray;*/
+    padding: 20px;
+}
+
+.container {
+    background-color: #f0f2f5 !important;
+}
+
+.side-bar-heading {
+    /*border-bottom: 1px solid gray;*/
+    padding: 0px 30px 20px 30px;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.list-group-item {
+    text-decoration: none;
+    padding: 15px 20px !important;
+    font-size: 18px;
+}
+
+.list-group-item.active {
+    color: white !important;
+    background-color: #fcb93c !important;
+    border-radius: 10px;
+}
+
+.hover:hover {
+    color: blue;
+    cursor: pointer;
+}
+
+.nav-bar {
+    padding: 20px 30px;
+}
+
+.content {
+    flex-grow: 1;
+}
+
+#sidebar.hidden {
+    margin-left: -22rem;
+    visibility: hidden;
+}
+
+.dropdown-menu {
+    position: absolute !important;
+    inset: unset !important;
+    transform: unset !important;
+    min-width: 50% !important;
+    top: 100% !important;
+    right: 0 !important;
+}
+
+.footer {
+    padding: 20px 30px 18px;
+    color: rgba(0, 0, 0, 0.65);
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.9);
+    width: 100%;
+    box-shadow: rgba(146, 153, 184, 0.2) 0px -5px 10px;
+}
+
+.footer .title-footer a {
+    text-decoration: none;
+}
+
+.footer .title-footer {
+    text-align: center;
+    margin: 0;
+    color: #000000d9;
+}
+
+.input-pass, .input-infor {
+    border-radius: 5px;
+    padding: 3px;
+    width: 60%;
+}
+
+.btn-upload-image {
+    border: 1px solid;
+    padding: 5px;
+}
+
+.image-upload {
+    margin: 0 auto;
+    width: 30%;
+    display: block;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.flex-4 {
+    flex: 4;
+}
+
+.color-btn {
+    background-color: rgb(21, 46, 89) !important;
+    color: white !important;
+}

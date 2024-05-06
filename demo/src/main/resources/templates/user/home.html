@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div class="container-fluid" th:fragment="content" style="min-height: 70vh">
+    <div class="row">
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-blue">
+                <div class="row small-box-child">
+                    <div class="col-6">
+                        <h3 th:text="${quantityDepartment}"></h3>
+                        <p>Khoa/Viện</p>
+                    </div>
+                    <div class="col-6">
+                        <i class="fa-solid fa-building me-2 icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-blue">
+                <div class="row small-box-child">
+                    <div class="col-6">
+                        <h3 th:text="${quantityStudent}"></h3>
+                        <p>Sinh viên</p>
+                    </div>
+                    <div class="col-6">
+                        <i class="fa-solid fa-graduation-cap me-2 icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-blue">
+                <div class="row small-box-child">
+                    <div class="col-6">
+                        <h3 th:text="${quantityLecturer}"></h3>
+                        <p style="font-size: 15px">Giảng viên</p>
+                    </div>
+                    <div class="col-6">
+                        <i class="fa-solid fa-chalkboard-user me-2 icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-blue">
+                <div class="row small-box-child">
+                    <div class="col-6">
+                        <h3 th:text="${quantityClass}"></h3>
+                        <p>Lớp học</p>
+                    </div>
+                    <div class="col-6">
+                        <i class="fa-solid fa-house me-2 icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-xs-6 mt-2">
+            <div class="small-box bg-blue">
+                <div class="row small-box-child">
+                    <div class="col-6">
+                        <h3 th:text="${quantitySubject}"></h3>
+                        <p>Học phần</p>
+                    </div>
+                    <div class="col-6">
+                        <i class="fa-solid fa-book me-2 icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách Giảng viên</title>
+    <!--    bootstrap-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!--    font-awesum-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+<body>
+
+<div class="container-fluid" th:fragment="content">
+    <div class="header">
+        <h3 class="title-header text-white">Quản lý thông tin giảng viên</h3>
+    </div>
+    <div class="p-2">
+        <h4 class="total-student">Có tổng tất cả <span th:text="${quantityLecturer}"></span> giảng viên</h4>
+    </div>
+    <div class="row p-2">
+        <div class="col-sm-3 mt-3 mb-3">
+            <button class="btn btn-success color-btn" data-bs-toggle="modal" data-bs-target="#addnewstudent">Thêm giảng viên</button>
+        </div>
+        <div class="col-sm-3 mt-3 mb-3">
+            <select class="select-sort color-select" id="sortLecturer" onchange="sendSortLecturer()">
+                <option selected value="">Sắp xếp</option>
+                <option value="lecturerName" th:selected="${sort == 'lecturerName'}">Họ tên</option>
+                <option value="lecturerCode" th:selected="${sort == 'lecturerCode'}">Mã giảng viên</option>
+            </select>
+        </div>
+
+        <div class="col-sm-6 mt-3 mb-3">
+            <form class="input-search" action="/dash-board/list-lecturer/search" method="get">
+                <input type="text" name="keyword" id="search" th:value="${keyword}" placeholder="Tìm kiếm...">
+                <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </form>
+        </div>
+
+    </div>
+
+    <p th:if="${noResultSearch ?: false}" class="no-result">Không có kết quả tìm kiếm</p>
+    <p th:if="${noResultFindAll ?: false}" class="no-result">Không có dữ liệu để hiển thị, bạn cần thêm mới dữ liệu</p>
+
+    <div style="min-height: 260px">
+        <table class="table table-striped table-hover border text-center">
+            <thead>
+            <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Họ tên</th>
+                <th scope="col">Mã giảng viên</th>
+                <th scope="col">Số điện thoại</th>
+                <th scope="col">Trình độ</th>
+                <th scope="col">Khoa</th>
+                <th scope="col">Tuỳ chọn</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="lecturer : ${listLecturers}">
+                <th scope="row" th:text="${lecturer.lecturerId}"></th>
+                <td th:text="${lecturer.lecturerName}"></td>
+                <td th:text="${lecturer.lecturerCode}"></td>
+                <td th:text="${lecturer.phoneNumber}"></td>
+                <td th:text="${lecturer.level}"></td>
+                <td th:text="${lecturer.department.departmentName}"></td>
+                <td class="d-flex justify-content-evenly">
+                    <span class="text-info hover"
+                          data-bs-toggle="modal"
+                          data-bs-target="#inforstudent"
+                          title="Thông tin giảng viên"
+                          th:lecturerId="${lecturer.lecturerId}"
+                          onclick="clickInforLecturer(this.getAttribute('lecturerId'))">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </span>
+                    <span class="text-primary hover"
+                          data-bs-toggle="modal"
+                          data-bs-target="#updatestudent"
+                          title="Cập nhật giảng viên"
+                          th:lecturerId="${lecturer.lecturerId}"
+                          onclick="clickInforLecturerUpdate(this.getAttribute('lecturerId'))">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </span>
+                    <span class="text-danger hover"
+                          title="Xoá giảng viên"
+                          data-bs-toggle="modal"
+                          data-bs-target="#ModalDeleteLecturer"
+                          th:lecturerId="${lecturer.lecturerId}"
+                          onclick="clickModalDeleteLecturer(this.getAttribute('lecturerId'))">
+                        <i class="fa-solid fa-trash"></i>
+                    </span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!--    pagination-->
+    <nav aria-label="Page navigation example" th:if="${totalPage > 0}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:if="${pageNumber > 0}">
+                <a class="page-link" th:href="${keyword != null ? '?keyword=' + keyword +'&' : '?'} + 'page=' + ${pageNumber - 1}" tabindex="-1" aria-disabled="true"><<</a>
+            </li>
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPage - 1)}" th:classappend="${pageNumber == i ? 'active' : ''}">
+                <a class="page-link" th:href="${keyword != null ? '?keyword=' + keyword +'&' : '?'} + 'page=' + ${i}" th:text="${i + 1}"></a>
+            </li>
+            <li class="page-item" th:if="${pageNumber < totalPage - 1}">
+                <a class="page-link" th:href="${keyword != null ? '?keyword=' + keyword +'&' : '?'} + 'page=' + ${pageNumber + 1}">>></a>
+            </li>
+        </ul>
+    </nav>
+
+    <!--        modal add new lecturer-->
+    <div class="modal fade" id="addnewstudent" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog margintop-15vh">
+            <form class="modal-content width-150" action="/add-new-lecturer" enctype="multipart/form-data" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addnewstudentLabel">Thêm mới giảng viên</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="nameLecturer">Tên giảng viên: </label>
+                            <input class="css-input p-1" type="text" required name="lecturerName" id="nameLecturer" placeholder="Nhập tên giảng viên...">
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="lecturerCode">Mã giảng viên: </label>
+                            <input class="css-input p-1" type="text" required name="lecturerCode" id="lecturerCode" placeholder="Nhập mã giảng viên...">
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="emailLecturer">Email: </label>
+                            <input class="css-input p-1" type="email" required name="email" id="emailLecturer" placeholder="Nhập email...">
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="lecturerPassword">Mật khẩu: </label>
+                            <input class="css-input p-1" type="password" required name="password" id="lecturerPassword" placeholder="Nhập mật khẩu...">
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="phomeNumberLecturer">Số điện thoại: </label>
+                            <input class="css-input p-1" type="text" required name="phoneNumber" id="phomeNumberLecturer" placeholder="Nhập sđt...">
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="addressLecturer">Địa chỉ: </label>
+                            <input class="css-input p-1" type="text" required name="address" id="addressLecturer" placeholder="Nhập địa chỉ...">
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="dobLecturer">Ngày sinh: </label>
+                            <input class="css-input p-1" type="date" required id="dobLecturer" name="dateOfBirth">
+                        </div>
+
+                        <div class="col-sm-6 d-flex">
+                            <label class="minwidth-30" for="gender">Giới tính:</label>
+                            <select class="form-select p-1" required name="gender" id="gender" aria-label="Default select example" >
+                                <option>Chọn giới tính</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="levelAdd">Trình độ:</label>
+                            <select class="form-select" required name="level" id="levelAdd" aria-label="Default select example" >
+                                <option selected>Chọn trình độ</option>
+                                <option value="Thạc sĩ">Thạc sĩ</option>
+                                <option value="Tiến sĩ">Tiến sĩ</option>
+                                <option value="Phó giáo sư">Phó giáo sư</option>
+                                <option value="Giáo sư">Giáo sư</option>
+                            </select>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="depaertmentAddNew">Thuộc khoa :</label>
+                            <select class="form-select" required name="departmentId" id="depaertmentAddNew" aria-label="Default select example">
+                                <option selected value="">Chọn khoa</option>
+                                <option th:each="depart : ${listDepartments}"
+                                    th:value="${depart.departmentId}"
+                                    th:text="${depart.departmentName}">
+                                </option>
+                            </select>
+                            <p class="note">Nếu không có khoa phải thêm khoa trước</p>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-sm d-flex">
+                            <label class="minwidth-30" for="imageAddnew">Ảnh :</label>
+                            <input type="file" required accept="image/*" name="imageAddnew" id="imageAddnew">
+                            <img src="" style="width: 15%" id="pre_imageAddnew">
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success color-btn">Thêm</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Huỷ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!--        modal infor lecturer-->
+
+    <div class="modal fade" id="inforstudent" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog margintop-15vh">
+            <div class="modal-content width-150">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="inforstudentLabel">Thông tin giảng viên</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body row">
+
+                    <div class="col-sm-6">
+                        <div class="">
+                            <label class="minwidth-30 fw-bold" >Tên giảng viên: </label>
+                            <span id="nameLecturerInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold" >Email: </label>
+                            <span id="emailLecturerInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold" >Ngày sinh: </label>
+                            <span id="dobLecturerInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold">Giới tính: </label>
+                            <span id="genderLecturerInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold">Địa chỉ: </label>
+                            <span id="addressLecturerInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold" >Số điện thoại: </label>
+                            <span id="phomeNumberLecturerInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold" >Ngày tạo: </label>
+                            <span id="lecturerCreateAt"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold" >Ngày cập nhật: </label>
+                            <span id="lecturerUpdateAt"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold" >Trạng thái tài khoản: </label>
+                            <span id="enableLecturer"></span>
+                        </div>
+
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="">
+                            <label class="minwidth-30 fw-bold" >Mã giảng viên:</label>
+                            <span id="codeLecturerInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold" >Trình độ:</label>
+                            <span id="levelInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 fw-bold" >Thuộc khoa:</label>
+                            <span id="depaertmentInfor"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="minwidth-30 d-block fw-bold" >Ảnh: </label>
+                            <img src="" id="imageLecturerInfor" style="width: 50%">
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Huỷ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--    modal update lecturer-->
+    <div class="modal fade" id="updatestudent" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog margintop-15vh">
+            <form class="modal-content width-150" action="/update-lecturer" enctype="multipart/form-data" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updatestudentLabel">Cập nhật thông tin giảng viên</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="text" name="lecturerId" hidden id="lecturerIdUpdate">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="nameLecturerUpdate">Tên giảng viên: </label>
+                            <input class="css-input p-1" type="text" name="lecturerName" id="nameLecturerUpdate" placeholder="Nhập tên giảng viên...">
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="lecturerCodeUpdate">Mã giảng viên: </label>
+                            <input class="css-input p-1" type="text" name="lecturerCode" id="lecturerCodeUpdate" placeholder="Nhập mã giảng viên...">
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="emailLecturerUpdate">Email: </label>
+                            <input class="css-input p-1" type="email" name="email" id="emailLecturerUpdate" placeholder="Nhập email...">
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="lecturerPasswordUpdate">Mật khẩu: </label>
+                            <input class="css-input p-1" type="password" name="password" id="lecturerPasswordUpdate" placeholder="Nhập mật khẩu...">
+                            <p class="note mt-1">Nếu không cập nhật mật khẩu vui lòng bỏ trống</p>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="phomeNumberLecturerUpdate">Số điện thoại: </label>
+                            <input class="css-input p-1" type="text" name="phoneNumber" id="phomeNumberLecturerUpdate" placeholder="Nhập sđt...">
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="addressLecturerUpdate">Địa chỉ: </label>
+                            <input class="css-input p-1" type="text" name="address" id="addressLecturerUpdate" placeholder="Nhập địa chỉ...">
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-sm-6">
+                            <label class="minwidth-30" for="dobLecturerUpdate">Ngày sinh: </label>
+                            <input class="css-input p-1" type="date" id="dobLecturerUpdate" name="dateOfBirth">
+                        </div>
+
+                        <div class="col-sm-6 d-flex">
+                            <label class="minwidth-30" for="genderLecturerUpdate">Giới tính:</label>
+                            <select class="form-select p-1" name="gender" id="genderLecturerUpdate" aria-label="Default select example" >
+                                <option>Chọn giới tính</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-sm-4">
+                            <label class="minwidth-30" for="levelUpdate">Trình độ:</label>
+                            <select class="form-select" required name="level" id="levelUpdate" aria-label="Default select example" >
+                                <option selected value="">Chọn trình độ</option>
+                                <option value="Thạc sĩ">Thạc sĩ</option>
+                                <option value="Tiến sĩ">Tiến sĩ</option>
+                                <option value="Phó giáo sư">Phó giáo sư</option>
+                                <option value="Giáo sư">Giáo sư</option>
+                            </select>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label class="minwidth-30" for="departmentUpdate">Thuộc khoa/Viện:</label>
+                            <select class="form-select" name="departmentId" id="departmentUpdate" aria-label="Default select example">
+                                <option selected value="">Chọn khoa</option>
+                                <option th:each="depart : ${listDepartments}"
+                                        th:value="${depart.departmentId}"
+                                        th:text="${depart.departmentName}">
+                                </option>
+                            </select>
+                            <p class="note mt-1">Nếu không có khoa phải thêm khoa trước</p>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label class="minwidth-30" for="enableLecturerUpdate">Trạng thái tài khoản: </label>
+                            <select class="form-select" name="enable" id="enableLecturerUpdate" aria-label="Default select example">
+                                <option selected value="">Chọn trạng thái</option>
+                                <option value="true">Đang hoạt động</option>
+                                <option value="false">Đã bị khoá</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-sm d-flex">
+                            <label class="minwidth-30" for="imageUpdate">Ảnh :</label>
+                            <input type="file" accept="image/*" name="imageUpdate" id="imageUpdate">
+                            <img src="" style="width: 15%" id="pre_imageUpdate">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success color-btn">Cập nhật</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Huỷ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<!--    modal delete lecturer-->
+    <div class="modal fade" id="ModalDeleteLecturer" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form class="modal-content" action="/delete-lecturer" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Xoá giảng viên</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" hidden name="lecturerId" id="lecturerIdDelete">
+                    Bạn có chắc muốn xoá giảng viên có id là: <span id="idLecturer"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit"
+                            class="btn btn-success color-btn">Xoá</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Huỷ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
